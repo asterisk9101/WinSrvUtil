@@ -60,31 +60,32 @@ $Log | ForEach-Object {
     }
 
     #########################
-    # Evtx -> Csv 変換
+    # Evtx -> Txt 変換
     #########################
-    $OutCSV = $LogPath + $StartDate + ".txt"
-    if (Test-Path $OutCSV) {
-        logger -level WARN "既に存在します: $OutCSV"
+    $OutTxt = $LogPath + $StartDate + ".txt"
+    if (Test-Path $OutTxt) {
+        logger -level WARN "既に存在します: $OutTxt"
     } else {
-        logger "Evtxログ($_)をテキストに変換します: ${OutCSV}"
-        wevtutil.exe qe $OutEvtx /lf /f:text /rd:false | Out-File $OutCSV
+        logger "Evtxログ($_)をテキストに変換します: ${OutTxt}"
+        wevtutil.exe qe $OutEvtx /lf /f:text /rd:false | Out-File $OutTxt
     }
 
     #########################
-    # Evtx, Csv をまとめて圧縮
+    # Evtx, Txt をまとめて圧縮
     #########################
     $OutZip = $LogPath + $StartDate + ".zip"
     logger "圧縮します: $OutZip"
-    Compress-Archive -Path $OutEvtx, $OutCsv -DestinationPath $OutZip -Force # 既に存在する場合は上書き
+    Compress-Archive -Path $OutEvtx, $OutTxt -DestinationPath $OutZip -Force # 既に存在する場合は上書き
 
     #########################
-    # Evtx, Csv を削除
+    # Evtx, Txt を削除
     #########################
     if ($?) {
         # 圧縮が成功した場合
         Get-Item -Path $LogPath*.txt, $LogPath*.evtx | ForEach-Object {
-            logger "削除します: $_"
-            Remove-Item -Force $_.FullName
+            $path = $_.FullName
+            logger "削除します: $path"
+            Remove-Item -Force $path
         }
     }
 
@@ -92,8 +93,9 @@ $Log | ForEach-Object {
     # 古い zip を削除
     #########################
     Get-Item $LogPath*.zip | Sort-Object -Descending LastWriteTime | Select-Object -Skip $Rotate | ForEach-Object {
-        logger "削除します: $_"
-        Remove-Item -Force $_.FullName
+        $path = $_.FullName
+        logger "削除します: $path"
+        Remove-Item -Force $path
     }
 }
 
