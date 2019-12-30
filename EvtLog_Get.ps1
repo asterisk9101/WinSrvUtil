@@ -3,7 +3,7 @@
 ###############################################################################
 param(
     [string]$LogDir = ".",
-    [string]$OutFolder = ".",
+    [string]$OutDir = ".",
     [DateTime]$Date = [DateTime]::Today.AddDays(-1),
     [int]$Rotate = 65,
     [ValidateSet("Application", "System", "Security")]
@@ -27,9 +27,9 @@ $logpath = Join-Path $LogDir ($basename + ".log")
 New-Logger -Path $logpath -Rotate $Rotate -ToScreen
 
 # イベントログ出力先の確認
-$ResolvedOutFolder = Resolve-Path $OutFolder | Select-Object -ExpandProperty Path
+$ResolvedOutDir = Resolve-Path $OutDir | Select-Object -ExpandProperty Path
 if (-not $?) {
-    logger -level ERROR "出力先フォルダがありません: $OutFolder"
+    logger -level ERROR "出力先フォルダがありません: $OutDir"
     exit 1
 }
 
@@ -46,7 +46,7 @@ logger "出力対象は ${EndDate} です。" # 15時間ずれるので EndDate の日付が取れる
 $Log | ForEach-Object {
 
     $FileNameTempl = $Env:COMPUTERNAME + "_" + $_ + "_" # ComputerName_Log_
-    $LogPath = Join-Path $ResolvedOutFolder $FileNameTempl
+    $LogPath = Join-Path $ResolvedOutDir $FileNameTempl
     
     ########################
     # Evtx エクスポート
@@ -68,6 +68,7 @@ $Log | ForEach-Object {
     } else {
         logger "Evtxログ($_)をテキストに変換します: ${OutTxt}"
         wevtutil.exe qe $OutEvtx /lf /f:text /rd:false | Out-File $OutTxt
+        # .\logparser.exe -i:Evtx -o:CSV "select * into $OutTxt from $OutEvtx"
     }
 
     #########################
@@ -75,7 +76,8 @@ $Log | ForEach-Object {
     #########################
     $OutZip = $LogPath + $EndDate + ".zip"
     logger "圧縮します: $OutZip"
-    Compress-Archive -Path $OutEvtx, $OutTxt -DestinationPath $OutZip -Force # 既に存在する場合は上書き
+    Compress-Archive -Path $OutEvtx, $OutTxt -DestinationPath $OutZip -Update # 既に存在する場合は追加
+    # .\7z.exe a $OutZip $OutEvtx $OutTxt # 既に存在する場合は追加
 
     #########################
     # Evtx, Txt を削除
