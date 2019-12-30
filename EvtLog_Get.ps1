@@ -38,10 +38,10 @@ logger "イベントログ出力開始=================================================="
 ########################
 # イベントログ出力期間
 ########################
-$StartDate = $Date.ToString("yyyy-MM-dd")
-$EndDate = $Date.AddDays(1).ToString("yyyy-MM-dd")
+$StartDate = $Date.AddDays(-1).ToString("yyyy-MM-dd")
+$EndDate = $Date.ToString("yyyy-MM-dd")
 
-logger "出力対象は ${StartDate} です。"
+logger "出力対象は ${EndDate} です。" # 15時間ずれるので EndDate の日付が取れる
 
 $Log | ForEach-Object {
 
@@ -51,7 +51,7 @@ $Log | ForEach-Object {
     ########################
     # Evtx エクスポート
     ########################
-    $OutEvtx = $LogPath + $StartDate + ".evtx"
+    $OutEvtx = $LogPath + $EndDate + ".evtx"
     if (Test-Path $OutEvtx) {
         logger -level WARN "既に存在します: $OutEvtx"
     } else {
@@ -62,7 +62,7 @@ $Log | ForEach-Object {
     #########################
     # Evtx -> Txt 変換
     #########################
-    $OutTxt = $LogPath + $StartDate + ".txt"
+    $OutTxt = $LogPath + $EndDate + ".txt"
     if (Test-Path $OutTxt) {
         logger -level WARN "既に存在します: $OutTxt"
     } else {
@@ -73,7 +73,7 @@ $Log | ForEach-Object {
     #########################
     # Evtx, Txt をまとめて圧縮
     #########################
-    $OutZip = $LogPath + $StartDate + ".zip"
+    $OutZip = $LogPath + $EndDate + ".zip"
     logger "圧縮します: $OutZip"
     Compress-Archive -Path $OutEvtx, $OutTxt -DestinationPath $OutZip -Force # 既に存在する場合は上書き
 
