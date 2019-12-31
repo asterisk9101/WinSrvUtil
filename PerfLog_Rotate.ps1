@@ -50,6 +50,19 @@ if ($DCS.status -ne 0) {
 #    $outpath = Join-Path $_.Directory ($_.BaseName + ".csv")
 #    relog $_.FullName -f CSV -o $outpath
 #}
+##########################
+# 圧縮
+##########################
+Get-ChildItem -File -Recurse $RootPath | Where-Object { $_.Extension -eq ".blg" } | ForEach-Object {
+    $path = $_.FullName
+    $dest = $_.BaseName + ".zip"
+    $dest = Join-Path $_.Directory $dest
+    logger "圧縮します: $path"
+    Compress-Archive -Path $path -DestinationPath $dest -Force
+    # $here\7z.exe a $dest $path
+    logger "削除します: $path"
+    Remove-Item -Force $path
+}
 
 ##########################
 # ローテーション
