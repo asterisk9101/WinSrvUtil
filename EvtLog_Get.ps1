@@ -2,10 +2,19 @@
 # イベントログ出力
 ###############################################################################
 param(
+    # 実行ログの出力先（デフォルトカレントディレクトリ）
     [string]$LogDir = ".",
+
+    # イベントログ(zip)の出力先（デフォルトカレントディレクトリ）
     [string]$OutDir = ".",
+
+    # エクスポート対象の日付（デフォルト1日前）
     [DateTime]$Date = [DateTime]::Today.AddDays(-1),
+
+    # 保持するファイル世代数（デフォルト65日分）
     [int]$Rotate = 65,
+
+    # エクスポートするログの種類（デフォルト3種類全て）
     [ValidateSet("Application", "System", "Security")]
     [string[]]$Log = @("Application", "System", "Security")
 )

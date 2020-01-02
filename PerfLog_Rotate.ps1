@@ -2,8 +2,13 @@
 # パフォーマンスログローテーション
 ###############################################################################
 Param(
+    # 実行ログの出力先（デフォルトカレントディレクトリ）
     [string]$LogDir = ".",
+
+    # データコレクタセット名（デフォルトコンピュータ名）
     [string]$DataCollectorSetName = $Env:COMPUTERNAME,
+
+    # 保持するログの世代数（デフォルト65日分）
     [int]$Rotate = 65
 )
 $ErrorActionPreference = "continue"
