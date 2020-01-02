@@ -52,23 +52,23 @@ $Log | ForEach-Object {
     # Evtx エクスポート
     ########################
     $OutEvtx = $LogPath + $EndDate + ".evtx"
-    if (Test-Path $OutEvtx) {
-        logger -level WARN "既に存在します: $OutEvtx"
-    } else {
-        logger "Evtxログ($_)を出力します: ${OutEvtx}"
-        wevtutil.exe epl $_ $OutEvtx /q:"*[System[TimeCreated[@SystemTime>='${StartDate}T15:00:00.000Z' and @SystemTime<='${EndDate}T15:00:00.000Z']]]"
+    logger "Evtxログ($_)を出力します: ${OutEvtx}"
+    wevtutil.exe epl $_ $OutEvtx /q:"*[System[TimeCreated[@SystemTime>='${StartDate}T15:00:00.000Z' and @SystemTime<='${EndDate}T15:00:00.000Z']]]"
+    if (-not $?) {
+        logger -Level ERROR "ログ出力に失敗しました: $OutEvtx"
+        exit 1
     }
 
     #########################
     # Evtx -> Txt 変換
     #########################
     $OutTxt = $LogPath + $EndDate + ".txt"
-    if (Test-Path $OutTxt) {
-        logger -level WARN "既に存在します: $OutTxt"
-    } else {
-        logger "Evtxログ($_)をテキストに変換します: ${OutTxt}"
-        wevtutil.exe qe $OutEvtx /lf /f:text /rd:false | Out-File $OutTxt
-        # .\logparser.exe -i:Evtx -o:CSV "select * into $OutTxt from $OutEvtx"
+    logger "Evtxログ($_)をテキストに変換します: ${OutTxt}"
+    wevtutil.exe qe $OutEvtx /lf /f:text /rd:false | Out-File $OutTxt
+    # .\logparser.exe -i:Evtx -o:CSV "select * into $OutTxt from $OutEvtx"
+    if (-not $?) {
+        logger -Level ERROR "ログ変換に失敗しました: $OutTxt"
+        exit 1
     }
 
     #########################
@@ -78,17 +78,19 @@ $Log | ForEach-Object {
     logger "圧縮します: $OutZip"
     Compress-Archive -Path $OutEvtx, $OutTxt -DestinationPath $OutZip -Update # 既に存在する場合は追加
     # .\7z.exe a $OutZip $OutEvtx $OutTxt # 既に存在する場合は追加
+    if (-not $?) {
+        logger -Level ERROR "圧縮に失敗しました: $OutZip"
+        exit 1
+    }
 
     #########################
     # Evtx, Txt を削除
     #########################
-    if ($?) {
-        # 圧縮が成功した場合
-        Get-Item -Path $LogPath*.txt, $LogPath*.evtx | ForEach-Object {
-            $path = $_.FullName
-            logger "削除します: $path"
-            Remove-Item -Force $path
-        }
+    # 圧縮が成功した場合
+    Get-Item -Path $LogPath*.txt, $LogPath*.evtx | ForEach-Object {
+        $path = $_.FullName
+        logger "削除します: $path"
+        Remove-Item -Force $path
     }
 
     #########################

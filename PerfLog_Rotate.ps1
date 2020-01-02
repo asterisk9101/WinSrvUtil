@@ -29,6 +29,10 @@ $RootPath = $DCS.RootPath -replace '%systemdrive%', $Env:SystemDrive
 
 if (-not (Test-Path $RootPath)) {
     logger -level ERROR "データコレクタセットのルートパスが見つかりません: ${DataCollectorSetName}"
+
+    # COM オブジェクトの開放
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($DCS) | Out-Null
+
     exit 1
 }
 
@@ -80,6 +84,10 @@ logger "データコレクタセットを開始します: ${DataCollectorSetName}"
 $DCS.start($True)
 if ($DCS.status -ne 1) {
     logger -level ERROR "データコレクタセットが開始していません: ${DataCollectorSetName}"
+
+    # COM オブジェクトの開放
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($DCS) | Out-Null
+
     exit 1
 }
 

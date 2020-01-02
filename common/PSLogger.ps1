@@ -64,8 +64,7 @@ function New-Logger {
             # ŒÃ‚¢ƒtƒ@ƒCƒ‹‚ğíœ‚·‚é
             $rotateName = $item.BaseName + "_*_*" + $item.Extension
             $rotatePath = Join-Path $item.Directory $rotateName
-            $rotateFiles = Get-Item $rotatePath | Sort-Object -Descending LastWriteTime | Select-Object -Skip $Rotate
-            $rotateFiles | Remove-Item -Force
+            Get-Item $rotatePath | Sort-Object -Descending LastWriteTime | Select-Object -Skip $Rotate | Remove-Item -Force
         }
     } else {
         $Folder = Split-Path -Parent -Path $Path
